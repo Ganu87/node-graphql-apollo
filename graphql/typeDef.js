@@ -28,6 +28,12 @@ const typeDefs = gql`
         salaries: [Salary]
         employeeDetails(id: Int!): Employee
     }
+
+    type Mutation {
+        addDepartment(name: String!): Department
+        updateDepartment(id: Int!, name: String!): Department
+        deleteDepartment(id: Int!): String
+    }
 `;
 
 module.exports = typeDefs;

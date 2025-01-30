@@ -47,6 +47,32 @@ const resolvers = {
             return result.rows;
         },
     },
+    
+    Mutation: {
+        // Add Department
+        addDepartment: async (_, { name }) => {
+            const result = await db.query(
+                "INSERT INTO DEPARTMENT (name) VALUES ($1) RETURNING *",
+                [name]
+            );
+            return result.rows[0]; // Returns the newly created department
+        },
+
+        // Update Department
+        updateDepartment: async (_, { id, name }) => {
+            const result = await db.query(
+                "UPDATE DEPARTMENT SET name = $1 WHERE id = $2 RETURNING *",
+                [name, id]
+            );
+            return result.rows[0]; // Returns the updated department
+        },
+
+        // Delete Department
+        deleteDepartment: async (_, { id }) => {
+            await db.query("DELETE FROM DEPARTMENT WHERE id = $1", [id]);
+            return `Department with ID ${id} deleted successfully.`;
+        },
+    },
 };
 
 module.exports = resolvers;
