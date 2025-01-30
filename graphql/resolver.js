@@ -1,8 +1,6 @@
-const { Query } = require('pg');
 const db = require('../db/db');
 
 const resolvers = {
-
     Query: {
         employees: async () => {
             const result = await db.query("SELECT * FROM EMPLOYEE");
@@ -17,29 +15,35 @@ const resolvers = {
             return result.rows;
         },
         employeeDetails: async (_, { id }) => {
-            const employee = (await db.query("SELECT * FROM EMPLOYEE WHERE ID=:$1", [id])).rows[0];
-            if (employee) {
-                const department = (await db.query("SELECT * FROM DEPARTMENT WHERE ID=:$1", [employee.department_id])).rows[0];
-                const salary = (await db.query("SELECT * FROM SALARY WHERE EMPLOYEE_ID=$1", [id])).rows;
+            const employeeQuery = await db.query("SELECT * FROM EMPLOYEE WHERE ID = $1", [id]);
+            if (employeeQuery.rows.length === 0) return null;
 
-                return { ...employee, department, salary };
-            }
-            return null;
+            const employee = employeeQuery.rows[0];
+
+            // Fetch department
+            const departmentQuery = await db.query("SELECT * FROM DEPARTMENT WHERE ID = $1", [employee.department_id]);
+            const department = departmentQuery.rows[0] || null;
+
+            // Fetch salary details
+            const salaryQuery = await db.query("SELECT * FROM SALARY WHERE EMPLOYEE_ID = $1", [id]);
+            const salary = salaryQuery.rows;
+
+            return { ...employee, department, salary };
         },
     },
     Employee: {
         department: async (employee) => {
-            const result = await db.query("SELECT * FROM DEPARTMENT WHERE ID=:$1", [employee.department_id]);
+            const result = await db.query("SELECT * FROM DEPARTMENT WHERE ID = $1", [employee.department_id]);
             return result.rows[0];
         },
         salary: async (employee) => {
-            const result = await db.query("SELECT * FROM SALARY WHERE WHERE EMPLOYEE_ID=:$1", [employee.id]);
+            const result = await db.query("SELECT * FROM SALARY WHERE EMPLOYEE_ID = $1", [employee.id]);
             return result.rows;
         },
     },
     Department: {
         employees: async (department) => {
-            const result = await db.query("SELECT * FROM EMPLOYEE WHERE DEPARTMENT_ID=:$1", [department.id]);
+            const result = await db.query("SELECT * FROM EMPLOYEE WHERE DEPARTMENT_ID = $1", [department.id]);
             return result.rows;
         },
     },
